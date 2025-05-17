@@ -4,17 +4,27 @@
 
   include_once("./app/database/connect.php");
 
+  $error_message = array();
+
   if(isset($_POST["submitButton"])) {
-
-    $post_date = date("Y-m-d H:i:s");
-    $sql = "INSERT INTO comment (username, body, post_date) VALUES (:username, :body, :post_date)";
-    $statement = $pdo->prepare($sql);
-
-    $statement->bindParam(":username", $_POST["username"], PDO::PARAM_STR);
-    $statement->bindParam(":body", $_POST["body"], PDO::PARAM_STR);
-    $statement->bindParam(":post_date", $post_date, PDO::PARAM_STR);
-
-    $statement->execute();
+    // 入力チェック
+    if (empty($_POST["username"])) {
+      $error_message["username"] = "名前を入力してください";
+    }
+    if (empty($_POST["body"])) {
+      $error_message["body"] = "コメントを入力してください";
+    }
+    if (empty($error_message)) {      
+      $post_date = date("Y-m-d H:i:s");
+      $sql = "INSERT INTO comment (username, body, post_date) VALUES (:username, :body, :post_date)";
+      $statement = $pdo->prepare($sql);
+      
+      $statement->bindParam(":username", $_POST["username"], PDO::PARAM_STR);
+      $statement->bindParam(":body", $_POST["body"], PDO::PARAM_STR);
+      $statement->bindParam(":post_date", $post_date, PDO::PARAM_STR);
+      
+      $statement->execute();
+    }
   }
 
   $comment_array = array();
@@ -38,8 +48,17 @@
       <h1 class="title">2ちゃんねる掲示板</h1>
       <hr />
     </header>
-    
+  
     <div class="threadWrapper">
+      <!-- バリデーションチェックメッセージ -->
+       <?php if(isset($error_message)) : ?>
+        <ul class="errorMessage">
+          <?php foreach($error_message as $error) : ?>
+            <li><?php echo $error ?></li>
+          <?php endforeach; ?>
+  
+        </ul>
+      <?php endif; ?>
       <div class="childWrapper">
         <div class="threadTitle">
           <span>【タイトル】</span>
