@@ -1,28 +1,30 @@
 <?php
+  error_reporting(E_ALL);
+  ini_set('display_errors', 1);
 
-// DB接続情報
-  include_once "./app/database/connect.php";
+  include_once("./app/database/connect.php");
 
-  if (isset($_POST["submitButton"])){
-    // 送信されたデータを取得
-    $usrname = $_POST["username"];
-    $body = $_POST["body"];
-    var_dump($usrname);
-    var_dump($body);
+  if(isset($_POST["submitButton"])) {
+
+    $post_date = date("Y-m-d H:i:s");
+    $sql = "INSERT INTO comment (username, body, post_date) VALUES (:username, :body, :post_date)";
+    $statement = $pdo->prepare($sql);
+
+    $statement->bindParam(":username", $_POST["username"], PDO::PARAM_STR);
+    $statement->bindParam(":body", $_POST["body"], PDO::PARAM_STR);
+    $statement->bindParam(":post_date", $post_date, PDO::PARAM_STR);
+
+    $statement->execute();
   }
 
   $comment_array = array();
 
-  // コメントデータをテーブルから取得してくる
-  $sql = "SELECT * FROM comments";
-  $statement = $pdo -> prepare($sql);
-  $comment_array =  execute();
-  $comment_array = $statement;
-
-  // var_dump($comment_array->fetchAll());
+  $sql = "SELECT * FROM comment";
+  $statement = $pdo->prepare($sql);
+  $statement->execute();
+  $comment_array = $statement->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -43,14 +45,14 @@
           <span>【タイトル】</span>
           <h1>作ってみる</h1>
         </div>
-        <section>
+        <section>    
           <?php foreach ($comment_array as $comment): ?>
           <article>
             <div class="wrapper">
               <div class="nameArea">
                 <span>名前: </span>
-                <p class="username">わたし</p>
-                <time>: 2025/05/13 22:44 </time>
+                <p class="username"><?php echo $comment["username"]; ?></p>
+                <time>: <?php echo $comment["post_date"]; ?> </time>
               </div>
               <p class="comment"><?php echo $comment["body"]; ?></p>
             </div>
