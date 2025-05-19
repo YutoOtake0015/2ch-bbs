@@ -8,7 +8,6 @@
   </head>
   <body>
     <?php include("app/parts/header.php"); ?>
-    <?php include_once("app/functions/comment_add.php"); ?>
     <?php include("app/parts/validation.php"); ?>
     <?php include("app/parts/thread.php"); ?>
     <?php include("app/parts/newThreadButton.php") ?>
