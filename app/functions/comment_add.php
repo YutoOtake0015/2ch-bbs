@@ -2,13 +2,14 @@
   $error_message = array();
 
   if(isset($_POST["submitButton"])) {
-    // 入力チェック
+    // ユーザ名入力チェック
     if (empty($_POST["username"])) {
       $error_message["username"] = "名前を入力してください";
     } else {
       // エスケープ処理
       $escped_message["username"] = htmlspecialchars($_POST["username"], ENT_QUOTES, "UTF-8");
     }
+    // コメント入力チェック
     if (empty($_POST["body"])) {
       $error_message["body"] = "コメントを入力してください";
     } else {
