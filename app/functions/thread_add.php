@@ -26,28 +26,39 @@
 
     if (empty($error_message)) { 
       $post_date = date("Y-m-d H:i:s");
-      //スレッドを作成
-      $sql = "INSERT INTO thread (title) VALUES (:title);";
-      $statement = $pdo->prepare($sql);
 
-      //値をセット
-      $statement->bindParam(":title", $escaped["title"], PDO::PARAM_STR);
+      // トランザクション開始
+      $pdo->beginTransaction();
+      try{
+        //スレッドを作成
+        $sql = "INSERT INTO thread (title) VALUES (:title);";
+        $statement = $pdo->prepare($sql);
+  
+        //値をセット
+        $statement->bindParam(":title", $escaped["title"], PDO::PARAM_STR);
+  
+        $statement->execute();
+  
+        // コメント作成
+        $sql = "INSERT INTO comment (username, body, post_date, thread_id) 
+                VALUES (:username, :body, :post_date, (SELECT id FROM thread WHERE title = :title))";
+        $statement = $pdo->prepare($sql);
+  
+        // 値をセット
+        $statement->bindParam(":username", $escaped["username"], PDO::PARAM_STR);
+        $statement->bindParam(":body", $escaped["body"], PDO::PARAM_STR);
+        $statement->bindParam(":post_date", $post_date, PDO::PARAM_STR);
+        $statement->bindParam(":title", $_POST["title"], PDO::PARAM_STR);
+  
+        // 実行
+        $statement->execute();
 
-      $statement->execute();
-
-      // コメント作成
-      $sql = "INSERT INTO comment (username, body, post_date, thread_id) 
-              VALUES (:username, :body, :post_date, (SELECT id FROM thread WHERE title = :title))";
-      $statement = $pdo->prepare($sql);
-
-      // 値をセット
-      $statement->bindParam(":username", $escaped["username"], PDO::PARAM_STR);
-      $statement->bindParam(":body", $escaped["body"], PDO::PARAM_STR);
-      $statement->bindParam(":post_date", $post_date, PDO::PARAM_STR);
-      $statement->bindParam(":title", $_POST["title"], PDO::PARAM_STR);
-
-      // 実行
-      $statement->execute();
+        // コミット
+        $pdo->commit();
+      } catch (Exception $e) {
+        // エラーが発生した場合はロールバック
+        $pdo->rollBack();
+      }
     }
     
     // 掲示板一覧に遷移

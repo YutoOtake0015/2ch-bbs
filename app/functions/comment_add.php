@@ -20,17 +20,30 @@
     if (empty($error_message)) {      
       $post_date = date("Y-m-d H:i:s");
 
-      $sql = "INSERT INTO `comment` (`username`, `body`, `post_date`, `thread_id`) 
-      VALUES (:username, :body, :post_date, :thread_id);";
-      $statement = $pdo->prepare($sql);
+      // トランザクション開始
+      $pdo->beginTransaction();
 
-      //値をセットする。
-      $statement->bindParam(":username", $escaped["username"], PDO::PARAM_STR);
-      $statement->bindParam(":body", $escaped["body"], PDO::PARAM_STR);
-      $statement->bindParam(":post_date", $post_date, PDO::PARAM_STR);
-      $statement->bindParam(":thread_id", $_POST["thread_id"], PDO::PARAM_STR);
+      try{
+        $sql = "INSERT INTO `comment` (`username`, `body`, `post_date`, `thread_id`) 
+        VALUES (:username, :body, :post_date, :thread_id);";
+        $statement = $pdo->prepare($sql);
+  
+        //値をセット
+        $statement->bindParam(":username", $escaped["username"], PDO::PARAM_STR);
+        $statement->bindParam(":body", $escaped["body"], PDO::PARAM_STR);
+        $statement->bindParam(":post_date", $post_date, PDO::PARAM_STR);
+        $statement->bindParam(":thread_id", $_POST["thread_id"], PDO::PARAM_STR);
+  
+        // 実行
+        $statement->execute();
 
-      $statement->execute();
+        // コミット
+        $pdo->commit();
+      } catch(Exception $e) {
+        // エラーが発生した場合はロールバック
+        $pdo->rollBack();
+      }
+
     }    
   }
 ?>
